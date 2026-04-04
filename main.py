@@ -3,6 +3,9 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 import json
 import uuid
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from tasks import TASKS
 from grader import grade_repair

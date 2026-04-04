@@ -20,6 +20,9 @@ from typing import List
 import httpx
 from openai import OpenAI
 import google.generativeai as genai
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- Configuration ---
 API_BASE_URL = os.environ.get("API_BASE_URL", "https://api-inference.huggingface.co/v1")
