@@ -1,0 +1,8 @@
+{
+    "model_name": "gemini-1.5-flash",
+    "provider": "google",
+    "env_url": "http://localhost:7860",
+    "api_key_env_var": "GEMINI_API_KEY",
+    "max_steps_per_task": 3,
+    "temperature": 0.1
+}

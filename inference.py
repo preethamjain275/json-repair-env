@@ -25,24 +25,44 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- Configuration ---
-API_BASE_URL = os.environ.get("API_BASE_URL", "https://api-inference.huggingface.co/v1")
-MODEL_NAME   = os.environ.get("MODEL_NAME", "mistralai/Mistral-7B-Instruct-v0.3")
+def load_config():
+    config = {
+        "api_base_url": "https://api-inference.huggingface.co/v1",
+        "model_name": "mistralai/Mistral-7B-Instruct-v0.3",
+        "env_url": "http://localhost:7860",
+        "provider": "openai",
+        "max_steps_per_task": 5
+    }
+    config_path = "agent_config.json"
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, 'r') as f:
+                user_config = json.load(f)
+                config.update(user_config)
+        except Exception as e:
+            print(f"[DEBUG] Error loading config: {e}")
+    return config
+
+CONF = load_config()
+
+API_BASE_URL = CONF["api_base_url"]
+MODEL_NAME   = CONF["model_name"]
 HF_TOKEN     = os.environ.get("HF_TOKEN", "")
-ENV_URL      = os.environ.get("ENV_URL", "http://localhost:7860")
+ENV_URL      = CONF["env_url"]
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", HF_TOKEN)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 # Which provider to use: 'openai' (for Mistral/HF) or 'gemini'
-PROVIDER = "gemini" if GEMINI_API_KEY else "openai"
+PROVIDER = CONF.get("provider", "gemini" if GEMINI_API_KEY else "openai")
 
 if PROVIDER == "gemini":
     genai.configure(api_key=GEMINI_API_KEY)
-    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+    gemini_model = genai.GenerativeModel(MODEL_NAME)
 
-TASK_NAME = "json_repair_all_tasks"
+TASK_NAME = "json_repair_mastery_set"
 BENCHMARK = "json-repair-env"
-MAX_STEPS  = 5
-MAX_TOTAL_REWARD = 5.0
+MAX_STEPS  = CONF.get("max_steps_per_task", 5)
+MAX_TOTAL_REWARD = 10.0
 SUCCESS_SCORE_THRESHOLD = 0.7
 
 
