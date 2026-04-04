@@ -69,24 +69,36 @@ def build_observation() -> Observation:
 
 from fastapi.responses import HTMLResponse
 
+# --- Activity Logs (In-Memory) ---
+logs: List[str] = [
+    "[SYSTEM] Environment Initialized.",
+    "[SYSTEM] Ready for incoming agent connections.",
+    "[DASHBOARD] UI v2.0.0 (High-Performance) loaded."
+]
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    task_rows = ""
+    task_cards = ""
     for task in TASKS:
-        task_rows += f"""
-        <div class="task-card">
-            <div class="task-header">
-                <span class="task-name">{task['name']}</span>
-                <span class="difficulty {task['difficulty']}">{task['difficulty'].upper()}</span>
+        task_cards += f"""
+        <div class="glass-card task-item">
+            <div class="task-top">
+                <span class="task-id">{task['name']}</span>
+                <span class="badge {task['difficulty']}">{task['difficulty'].upper()}</span>
             </div>
-            <p class="description">{task['description']}</p>
-            <div class="code-block">
-                <strong>Broken JSON:</strong>
+            <p class="task-desc">{task['description']}</p>
+            <div class="code-container">
+                <div class="scan-line"></div>
                 <pre><code>{task['broken_json']}</code></pre>
             </div>
-            <div class="hint"><strong>Hint:</strong> {task['hint']}</div>
+            <div class="task-footer">
+                <span class="hint-label">DIAGNOSIS:</span>
+                <span class="hint-text">{task['hint']}</span>
+            </div>
         </div>
         """
+
+    log_items = "".join([f'<div class="log-line">{line}</div>' for line in logs])
 
     html_content = f"""
     <!DOCTYPE html>
@@ -94,84 +106,240 @@ async def root():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>JSON Repair OpenEnv Dashboard</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+        <title>JSON-REPAIR | Neural Environment</title>
+        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
         <style>
             :root {{
-                --bg: #0a0b10;
-                --card-bg: #151720;
-                --accent: #6366f1;
-                --text: #e2e8f0;
+                --bg: #05060d;
+                --surface: rgba(18, 20, 32, 0.7);
+                --accent: #7c3aed;
+                --accent-glow: rgba(124, 58, 237, 0.3);
+                --success: #10b981;
+                --warning: #f59e0b;
+                --danger: #ef4444;
+                --text: #f8fafc;
                 --text-dim: #94a3b8;
-                --easy: #10b981;
-                --medium: #f59e0b;
-                --hard: #ef4444;
+                --border: rgba(255, 255, 255, 0.08);
             }}
+
             * {{ margin: 0; padding: 0; box-sizing: border-box; }}
             body {{
-                font-family: 'Inter', sans-serif;
+                font-family: 'Outfit', sans-serif;
                 background-color: var(--bg);
+                background-image: 
+                    radial-gradient(circle at 10% 10%, rgba(124, 58, 237, 0.05) 0%, transparent 50%),
+                    radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
                 color: var(--text);
-                line-height: 1.6;
-                padding: 2rem;
+                min-height: 100vh;
+                overflow-x: hidden;
             }}
-            .container {{ max-width: 1000px; margin: 0 auto; }}
-            header {{ margin-bottom: 3rem; text-align: center; }}
-            h1 {{ font-size: 2.5rem; margin-bottom: 0.5rem; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }}
-            .subtitle {{ color: var(--text-dim); font-size: 1.1rem; }}
-            
-            .stats {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }}
-            .stat-card {{ background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }}
-            .stat-val {{ font-size: 1.5rem; font-weight: 700; color: var(--accent); display: block; }}
-            .stat-label {{ color: var(--text-dim); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; }}
 
-            .tasks-grid {{ display: grid; grid-template-columns: 1fr; gap: 2rem; }}
-            .task-card {{ background: var(--card-bg); padding: 2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.2s; }}
-            .task-card:hover {{ transform: translateY(-4px); border-color: rgba(99, 102, 241, 0.3); }}
-            .task-header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }}
-            .task-name {{ font-size: 1.4rem; font-weight: 600; }}
-            .difficulty {{ padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }}
-            .difficulty.easy {{ background: rgba(16, 185, 129, 0.1); color: var(--easy); }}
-            .difficulty.medium {{ background: rgba(245, 158, 11, 0.1); color: var(--medium); }}
-            .difficulty.hard {{ background: rgba(239, 68, 68, 0.1); color: var(--hard); }}
+            /* --- Header --- */
+            nav {{
+                padding: 1.5rem 2rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--border);
+                background: rgba(5, 6, 13, 0.8);
+                backdrop-filter: blur(10px);
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }}
+            .logo {{ font-size: 1.2rem; font-weight: 700; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }}
+            .logo-icon {{ width: 24px; height: 24px; background: var(--accent); border-radius: 4px; box-shadow: 0 0 15px var(--accent-glow); }}
+            .logo span {{ color: var(--accent); }}
             
-            .description {{ color: var(--text-dim); margin-bottom: 1.5rem; }}
-            .code-block {{ background: #000; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; overflow-x: auto; }}
-            pre {{ font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: #10b981; }}
-            .hint {{ padding: 1rem; background: rgba(255,255,255,0.02); border-left: 4px solid var(--accent); font-size: 0.95rem; }}
+            .sys-meta {{ display: flex; gap: 30px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }}
+            .meta-item {{ display: flex; flex-direction: column; }}
+            .meta-label {{ color: var(--text-dim); font-size: 0.7rem; }}
+            .status-active {{ color: var(--success); text-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }}
+
+            /* --- Main Layout --- */
+            main {{
+                display: grid;
+                grid-template-columns: 350px 1fr;
+                gap: 2rem;
+                padding: 2rem;
+                max-width: 1600px;
+                margin: 0 auto;
+            }}
+
+            /* --- Left Sidebar (Console) --- */
+            .console-panel {{
+                height: calc(100vh - 120px);
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                position: sticky;
+                top: 100px;
+            }}
+            .terminal {{
+                flex: 1;
+                background: #000;
+                border-radius: 12px;
+                padding: 1.5rem;
+                border: 1px solid var(--border);
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.85rem;
+                position: relative;
+                overflow: hidden;
+            }}
+            .terminal-header {{ border-bottom: 1px solid #222; padding-bottom: 10px; margin-bottom: 15px; display: flex; gap: 5px; }}
+            .dot {{ width: 8px; height: 8px; border-radius: 50%; }}
+            .log-line {{ margin-bottom: 5px; color: var(--text-dim); }}
+            .log-line:last-child {{ color: var(--success); border-left: 2px solid var(--success); padding-left: 10px; }}
             
-            footer {{ margin-top: 5rem; text-align: center; color: var(--text-dim); font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2rem; }}
-            .api-link {{ display: inline-block; margin: 1rem; color: var(--accent); text-decoration: none; font-weight: 600; }}
-            .api-link:hover {{ text-decoration: underline; }}
+            .action-panel {{
+                background: var(--surface);
+                padding: 1.5rem;
+                border-radius: 12px;
+                border: 1px solid var(--border);
+                backdrop-filter: blur(10px);
+            }}
+            .btn {{
+                width: 100%;
+                padding: 12px;
+                background: transparent;
+                border: 1px solid var(--border);
+                color: var(--text);
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: 0.3s;
+                text-decoration: none;
+                display: block;
+                text-align: center;
+                margin-bottom: 10px;
+            }}
+            .btn:hover {{ background: rgba(255,255,255,0.05); border-color: var(--accent); color: var(--accent); }}
+            .btn-accent {{ background: var(--accent); border: none; }}
+            .btn-accent:hover {{ background: #8b5cf6; color: white; box-shadow: 0 0 20px var(--accent-glow); }}
+
+            /* --- Center (Tasks) --- */
+            .tasks-container {{ display: flex; flex-direction: column; gap: 1.5rem; }}
+            .glass-card {{
+                background: var(--surface);
+                border-radius: 16px;
+                padding: 2rem;
+                border: 1px solid var(--border);
+                backdrop-filter: blur(20px);
+                position: relative;
+                overflow: hidden;
+            }}
+            
+            .task-top {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }}
+            .task-id {{ font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--accent); }}
+            .badge {{ padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }}
+            .easy {{ background: rgba(16, 185, 129, 0.1); color: var(--success); }}
+            .medium {{ background: rgba(245, 158, 11, 0.1); color: var(--warning); }}
+            .hard {{ background: rgba(239, 68, 68, 0.1); color: var(--danger); }}
+            .extreme {{ background: rgba(124, 58, 237, 0.1); color: #a78bfa; border: 1px solid var(--accent); }}
+            .chaos {{ background: linear-gradient(45deg, #ef4444, #7c3aed); color: white; }}
+
+            .task-desc {{ color: var(--text-dim); margin-bottom: 1.5rem; font-size: 0.95rem; }}
+            
+            .code-container {{
+                background: #000;
+                padding: 1.5rem;
+                border-radius: 10px;
+                position: relative;
+                margin-bottom: 1.5rem;
+                border: 1px solid #1a1b26;
+                box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            }}
+            pre {{ font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: #7dd3fc; white-space: pre-wrap; }}
+            
+            .scan-line {{
+                position: absolute;
+                top: 0; left: 0; width: 100%; height: 2px;
+                background: linear-gradient(to right, transparent, var(--accent), transparent);
+                animation: scan 3s infinite linear;
+                opacity: 0.5;
+            }}
+            @keyframes scan {{
+                0% {{ top: 0; }}
+                100% {{ top: 100%; }}
+            }}
+
+            .task-footer {{ display: flex; gap: 15px; align-items: flex-start; padding: 1rem; background: rgba(255,255,255,0.02); border-radius: 8px; }}
+            .hint-label {{ font-size: 0.7rem; font-weight: 800; color: var(--text-dim); margin-top: 3px; }}
+            .hint-text {{ font-size: 0.9rem; color: #cbd5e1; italic; }}
+
+            /* --- Animations --- */
+            .task-item {{ opacity: 0; transform: translateY(20px); animation: fadeInUp 0.5s forwards; }}
+            @keyframes fadeInUp {{
+                to {{ opacity: 1; transform: translateY(0); }}
+            }}
+            .task-item:nth-child(1) {{ animation-delay: 0.1s; }}
+            .task-item:nth-child(2) {{ animation-delay: 0.2s; }}
+            .task-item:nth-child(3) {{ animation-delay: 0.3s; }}
+            .task-item:nth-child(4) {{ animation-delay: 0.4s; }}
+            .task-item:nth-child(5) {{ animation-delay: 0.5s; }}
+
         </style>
     </head>
     <body>
-        <div class="container">
-            <header>
-                <h1>JSON Repair OpenEnv</h1>
-                <p class="subtitle">A reinforcement learning environment for autonomous JSON fixing</p>
-            </header>
-
-            <div class="stats">
-                <div class="stat-card"><span class="stat-val">{len(TASKS)}</span><span class="stat-label">Total Tasks</span></div>
-                <div class="stat-card"><span class="stat-val">FastAPI</span><span class="stat-label">Environment</span></div>
-                <div class="stat-card"><span class="stat-val">active</span><span class="stat-label">Status</span></div>
+        <nav>
+            <div class="logo">
+                <div class="logo-icon"></div>
+                JSON<span>REPAIR</span>.ENV
             </div>
-
-            <div class="tasks-grid">
-                {task_rows}
+            <div class="sys-meta">
+                <div class="meta-item">
+                    <span class="meta-label">ENVIRONMENT</span>
+                    <span>HF-DOCKER-NODE-01</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">SESSION</span>
+                    <span style="color:var(--accent)">{state['session_id'][:12] or 'NONE'}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">SYSTEM STATE</span>
+                    <span class="status-active">▶ ACTIVE</span>
+                </div>
             </div>
+        </nav>
 
-            <footer>
-                <p>Interactive API exploration:</p>
-                <a href="/docs" class="api-link">API Swagger Documentation</a>
-                <a href="/tasks" class="api-link">Tasks JSON</a>
-                <a href="/state" class="api-link">Env State</a>
-                <p style="margin-top: 1rem;">RL Environment Version 1.0.0</p>
-            </footer>
-        </div>
+        <main>
+            <section class="console-panel">
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="dot" style="background:var(--danger)"></div>
+                        <div class="dot" style="background:var(--warning)"></div>
+                        <div class="dot" style="background:var(--success)"></div>
+                        <span style="margin-left: 10px; color:#444; font-size:0.7rem">SRE-COMMAND-UNIT-v2.0</span>
+                    </div>
+                    <div id="log-container">
+                        {log_items}
+                    </div>
+                </div>
+                <div class="action-panel">
+                    <a href="/docs" class="btn btn-accent">SWAGGER API DOCS</a>
+                    <a href="/tasks" class="btn">VIEW TASKS JSON</a>
+                    <a href="/state" class="btn">ENVIRONMENT STATE</a>
+                    <p style="text-align: center; color: var(--text-dim); font-size: 0.7rem; margin-top: 10px;">
+                        PLATFORM VERSION: 1.0.0-PRO
+                    </p>
+                </div>
+            </section>
+
+            <section class="tasks-container">
+                {task_cards}
+            </section>
+        </main>
+
+        <script>
+            // Simple log auto-scroll
+            const container = document.getElementById('log-container');
+            container.scrollTop = container.scrollHeight;
+
+            // Auto-refresh the dashboard every 2 seconds to show live agent activity
+            setTimeout(() => {{
+                window.location.reload();
+            }}, 2000);
+        </script>
     </body>
     </html>
     """
@@ -192,6 +360,8 @@ async def reset():
         "done": False,
         "history": []
     })
+    logs.append(f"[EVENT] Environment Reset. Session: {state['session_id'][:8]}")
+    if len(logs) > 50: logs.pop(0)
     obs = build_observation()
     return ResetResult(observation=obs, done=False, reward=0.0)
 
@@ -214,6 +384,9 @@ async def step(action: Action):
     })
 
     state["task_index"] += 1
+    logs.append(f"[AGENT] Action submitted for {task['name']}. Reward: {reward}")
+    if len(logs) > 50: logs.pop(0)
+
     done = state["task_index"] >= len(TASKS)
     state["done"] = done
 
