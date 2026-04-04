@@ -11,6 +11,7 @@ Usage:
 """
 
 import asyncio
+import asyncio
 import json
 import os
 import sys
@@ -18,6 +19,7 @@ from typing import List
 
 import httpx
 from openai import OpenAI
+import google.generativeai as genai
 
 # --- Configuration ---
 API_BASE_URL = os.environ.get("API_BASE_URL", "https://api-inference.huggingface.co/v1")
@@ -25,6 +27,14 @@ MODEL_NAME   = os.environ.get("MODEL_NAME", "mistralai/Mistral-7B-Instruct-v0.3"
 HF_TOKEN     = os.environ.get("HF_TOKEN", "")
 ENV_URL      = os.environ.get("ENV_URL", "http://localhost:7860")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", HF_TOKEN)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+
+# Which provider to use: 'openai' (for Mistral/HF) or 'gemini'
+PROVIDER = "gemini" if GEMINI_API_KEY else "openai"
+
+if PROVIDER == "gemini":
+    genai.configure(api_key=GEMINI_API_KEY)
+    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
 
 TASK_NAME = "json_repair_all_tasks"
 BENCHMARK = "json-repair-env"
@@ -36,7 +46,8 @@ SUCCESS_SCORE_THRESHOLD = 0.7
 # --- Logging (MUST follow [START] [STEP] [END] format exactly) ---
 
 def log_start(task: str, env: str, model: str):
-    print(json.dumps({"type": "START", "task": task, "env": env, "model": model}), flush=True)
+    m_name = "gemini-1.5-flash" if PROVIDER == "gemini" else MODEL_NAME
+    print(json.dumps({"type": "START", "task": task, "env": env, "model": m_name}), flush=True)
 
 def log_step(step: int, action: str, reward: float, done: bool, error):
     print(json.dumps({
@@ -97,7 +108,7 @@ class EnvClient:
 
 # --- LLM call ---
 
-def get_model_repair(client: OpenAI, broken_json: str, hint: str, history: List[str]) -> str:
+def get_model_repair(openai_client: OpenAI, broken_json: str, hint: str, history: List[str]) -> str:
     history_text = "\n".join(history[-3:]) if history else "No previous steps."
     prompt = f"""You are a JSON repair expert. Your task is to fix the broken JSON below.
 
@@ -117,19 +128,37 @@ Rules:
 
 Repaired JSON:"""
 
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=500,
-        temperature=0.1
-    )
-    return response.choices[0].message.content.strip()
+    if PROVIDER == "gemini":
+        try:
+            response = gemini_model.generate_content(prompt)
+            content = response.text.strip()
+            # Minimal cleaning
+            if content.startswith("```json"):
+                content = content[7:].rsplit("```", 1)[0].strip()
+            elif content.startswith("```"):
+                content = content[3:].rsplit("```", 1)[0].strip()
+            return content
+        except Exception as e:
+            print(f"Gemini error: {e}")
+            return broken_json
+    else:
+        response = openai_client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=500,
+            temperature=0.1
+        )
+        return response.choices[0].message.content.strip()
 
 
 # --- Main ---
 
 async def main():
-    client = OpenAI(api_key=OPENAI_API_KEY or HF_TOKEN, base_url=API_BASE_URL)
+    # Only init openai if needed
+    hugging_client = None
+    if PROVIDER == "openai":
+        hugging_client = OpenAI(api_key=OPENAI_API_KEY or HF_TOKEN, base_url=API_BASE_URL)
+    
     env = EnvClient(ENV_URL)
 
     history: List[str] = []
@@ -153,7 +182,8 @@ async def main():
             hint   = obs.get("hint", "")
             task_name = obs.get("task_name", f"task_{step}")
 
-            action = get_model_repair(client, broken, hint, history)
+            # Note: client can be None if using Gemini
+            action = get_model_repair(hugging_client, broken, hint, history)
             result = await env.step(repaired_json=action, explanation="")
 
             obs     = result.observation
