@@ -326,11 +326,40 @@ async def root():
             </section>
 
             <section class="tasks-container">
+                <div class="glass-card" style="border-color: var(--accent); margin-bottom: 2rem;">
+                    <h2 style="margin-bottom: 1rem; font-size: 1.2rem;">⚡ CUSTOM REPAIR LAB</h2>
+                    <p class="task-desc">Others can use this to validate their own JSON logic instantly.</p>
+                    <textarea id="custom-json" style="width: 100%; height: 100px; background: #000; color: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-family: 'JetBrains Mono', monospace; margin-bottom: 10px;" placeholder="Paste your broken JSON here..."></textarea>
+                    <button onclick="testJSON()" class="btn btn-accent" style="margin: 0;">VALIDATE & FIX TEST</button>
+                    <div id="custom-result" style="margin-top: 10px; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace;"></div>
+                </div>
                 {task_cards}
             </section>
         </main>
 
         <script>
+            async function testJSON() {{
+                const val = document.getElementById('custom-json').value;
+                const resDiv = document.getElementById('custom-result');
+                resDiv.innerHTML = '<span style="color:var(--accent)">Analyzing...</span>';
+                
+                try {{
+                    const response = await fetch('/test_custom', {{
+                        method: 'POST',
+                        headers: {{ 'Content-Type': 'application/json' }},
+                        body: JSON.stringify({{ repaired_json: val }})
+                    }});
+                    const data = await response.json();
+                    if (data.status === 'valid') {{
+                        resDiv.innerHTML = '<span style="color:var(--success)">✓ VALID JSON STRUCTURE</span>';
+                    }} else {{
+                        resDiv.innerHTML = '<span style="color:var(--danger)">✗ INVALID: ' + data.error + '</span>';
+                    }}
+                }} catch (e) {{
+                    resDiv.innerHTML = '<span style="color:var(--danger)">Error connecting to server</span>';
+                }}
+            }}
+
             // Simple log auto-scroll
             const container = document.getElementById('log-container');
             container.scrollTop = container.scrollHeight;
@@ -421,6 +450,17 @@ async def list_tasks():
         }
         for t in TASKS
     ]
+
+@app.post("/test_custom")
+async def test_custom(action: Action):
+    """Utility endpoint for users to test their own repairs against a generic validator."""
+    try:
+        data = json.loads(action.repaired_json)
+        logs.append(f"[USER] Manual repair test: VALID JSON")
+        return {"status": "valid", "data": data}
+    except Exception as e:
+        logs.append(f"[USER] Manual repair test: INVALID. Error: {str(e)}")
+        return {"status": "invalid", "error": str(e)}
 
 def main():
     """Main entry point for the server."""

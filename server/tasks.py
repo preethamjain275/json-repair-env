@@ -107,5 +107,68 @@ TASKS = [
             }
         },
         "hint": "The events array is missing a closing bracket, the system_log structure is flat in the broken version but needs nesting, and multiple delimiters are missing."
+    },
+    {
+        "name": "mixed_quote_nightmare",
+        "difficulty": "hard",
+        "description": "Fix a JSON containing mixed single quotes, double quotes, and unquoted keys",
+        "broken_json": "{ \"title\": 'The Matrix', director: \"Wachowskis\", 'year': 1999, casting: [ 'Keanu', \"Laurence\", Carrie-Anne ] }",
+        "correct_json": '{"title": "The Matrix", "director": "Wachowskis", "year": 1999, "casting": ["Keanu", "Laurence", "Carrie-Anne"]}',
+        "schema": {
+          "type": "object",
+          "required": ["title", "director", "year", "casting"]
+        },
+        "hint": "Ensure all keys and string values use double quotes, and handle unquoted array elements."
+    },
+    {
+        "name": "escaped_character_confusion",
+        "difficulty": "extreme",
+        "description": "Repair JSON with malformed escape sequences and control characters",
+        "broken_json": '{"path": "C:\\\\Users\\\\Admin\\\\Documents", "message": "Line 1\\nLine 2\\tTabbed", "regex": "\\\d+\\\\\\.js"}',
+        "correct_json": '{"path": "C:\\\\Users\\\\Admin\\\\Documents", "message": "Line 1\\nLine 2\\tTabbed", "regex": "\\\\d+\\\\\\\\.js"}',
+        "schema": {
+            "type": "object",
+            "required": ["path", "message", "regex"]
+        },
+        "hint": "Handle backslash escaping correctly for Windows paths and Regex strings."
+    },
+    {
+        "name": "truncated_stream_recovery",
+        "difficulty": "chaos",
+        "description": "Recover data from a JSON object that was truncated mid-transmission",
+        "broken_json": '{"sensor_id": "WS-092", "readings": [ {"t": 171221, "v": 24.5}, {"t": 171222, "v": 24.6}, {"t": 171223, ',
+        "correct_json": '{"sensor_id": "WS-092", "readings": [{"t": 171221, "v": 24.5}, {"t": 171222, "v": 24.6}]}',
+        "schema": {
+            "type": "object",
+            "required": ["sensor_id", "readings"]
+        },
+        "hint": "The JSON ends abruptly. You must close the open object and array, discarding the partial element if necessary."
+    },
+    {
+        "name": "deep_recursive_reconstruction",
+        "difficulty": "extreme",
+        "description": "Repair a deep hierarchy (5+ levels) with inconsistent naming and missing braces",
+        "broken_json": "{ a: { b: { c: { d: { e: 'val', f: 10 } g: [1 2 3] h: { i: j } } } } }",
+        "correct_json": '{"a": {"b": {"c": {"d": {"e": "val", "f": 10, "g": [1, 2, 3], "h": {"i": "j"}}}}}}',
+        "schema": { "type": "object", "required": ["a"] },
+        "hint": "Track nesting levels carefully to ensure every opening brace has a matching closing brace."
+    },
+    {
+        "name": "data_type_normalization",
+        "difficulty": "medium",
+        "description": "Convert inconsistent data formats (dates, booleans in strings) to standard JSON types",
+        "broken_json": '{"active": "YES", "count": "42", "verified": 0, "tags": "web,app,json"}',
+        "correct_json": '{"active": true, "count": 42, "verified": false, "tags": ["web", "app", "json"]}',
+        "schema": {
+            "type": "object",
+            "required": ["active", "count", "verified", "tags"],
+            "properties": {
+                "active": {"type": "boolean"},
+                "count": {"type": "integer"},
+                "verified": {"type": "boolean"},
+                "tags": {"type": "array"}
+            }
+        },
+        "hint": "Normalize 'YES' to true, '42' to integer 42, 0 to false, and the comma-separated string to an array."
     }
 ]
