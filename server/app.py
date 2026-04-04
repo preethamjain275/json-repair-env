@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from tasks import TASKS
-from grader import grade_repair
+from .tasks import TASKS
+from .grader import grade_repair
 
 app = FastAPI(
     title="JSON Repair Environment",
