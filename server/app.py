@@ -338,6 +338,16 @@ async def root():
         </main>
 
         <script>
+            async function fetchLogs() {{
+                try {{
+                    const response = await fetch('/logs');
+                    const data = await response.json();
+                    const container = document.getElementById('log-container');
+                    container.innerHTML = data.map(line => `<div class="log-line">${{line}}</div>`).join('');
+                    container.scrollTop = container.scrollHeight;
+                }} catch (e) {{}}
+            }}
+
             async function testJSON() {{
                 const val = document.getElementById('custom-json').value;
                 const resDiv = document.getElementById('custom-result');
@@ -352,6 +362,7 @@ async def root():
                     const data = await response.json();
                     if (data.status === 'valid') {{
                         resDiv.innerHTML = '<span style="color:var(--success)">✓ VALID JSON STRUCTURE</span>';
+                        fetchLogs(); // Refresh logs immediately
                     }} else {{
                         resDiv.innerHTML = '<span style="color:var(--danger)">✗ INVALID: ' + data.error + '</span>';
                     }}
@@ -360,14 +371,12 @@ async def root():
                 }}
             }}
 
-            // Simple log auto-scroll
+            // Initial scroll
             const container = document.getElementById('log-container');
             container.scrollTop = container.scrollHeight;
 
-            // Auto-refresh the dashboard every 2 seconds to show live agent activity
-            setTimeout(() => {{
-                window.location.reload();
-            }}, 2000);
+            // Auto-refresh ONLY the logs every 2 seconds
+            setInterval(fetchLogs, 2000);
         </script>
     </body>
     </html>
@@ -450,6 +459,11 @@ async def list_tasks():
         }
         for t in TASKS
     ]
+
+@app.get("/logs")
+async def get_logs():
+    """Return latest activity logs."""
+    return logs
 
 @app.post("/test_custom")
 async def test_custom(action: Action):
