@@ -28,8 +28,8 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", HF_TOKEN)
 
 TASK_NAME = "json_repair_all_tasks"
 BENCHMARK = "json-repair-env"
-MAX_STEPS  = 3
-MAX_TOTAL_REWARD = 3.0
+MAX_STEPS  = 5
+MAX_TOTAL_REWARD = 5.0
 SUCCESS_SCORE_THRESHOLD = 0.7
 
 

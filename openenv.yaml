@@ -17,6 +17,12 @@ tasks:
   - name: hard_nested_reconstruction
     difficulty: hard
     description: Reconstruct heavily corrupted nested JSON structure
+  - name: extreme_multilevel_repair
+    difficulty: extreme
+    description: Fix deeply nested JSON with broken arrays and missing values
+  - name: chaos_malformed_object
+    difficulty: chaos
+    description: Repair a chaotic object with mismatched brackets and damage
 action_space:
   type: object
   properties:
