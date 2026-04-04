@@ -13,19 +13,19 @@ authors = [
 ]
 keywords = ["json", "data-quality", "llm-reliability", "real-world"]
 dependencies = [
-    "fastapi==0.111.0",
-    "uvicorn==0.29.0",
-    "pydantic==2.7.1",
-    "jsonschema==4.22.0",
-    "httpx==0.27.0",
-    "openai==1.30.1",
-    "python-dotenv==1.0.1",
-    "google-generativeai==0.5.4",
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "jsonschema",
+    "httpx",
+    "openai",
+    "python-dotenv",
+    "google-generativeai",
     "openenv-core>=0.2.0"
 ]
 
 [project.scripts]
-server = "server.app:app"
+server = "server.app:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
