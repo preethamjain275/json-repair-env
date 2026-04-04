@@ -1,0 +1,41 @@
+name: json-repair-env
+version: "1.0.0"
+description: "RL environment where an agent repairs malformed JSON outputs from LLMs"
+author: preethamjain275
+tags:
+  - json
+  - data-quality
+  - llm-reliability
+  - real-world
+tasks:
+  - name: easy_syntax_fix
+    difficulty: easy
+    description: Fix basic JSON syntax errors like trailing commas
+  - name: medium_type_repair
+    difficulty: medium
+    description: Fix wrong types and add missing required fields
+  - name: hard_nested_reconstruction
+    difficulty: hard
+    description: Reconstruct heavily corrupted nested JSON structure
+action_space:
+  type: object
+  properties:
+    repaired_json:
+      type: string
+      description: The agent's repaired JSON string
+    explanation:
+      type: string
+      description: Brief explanation of changes made
+observation_space:
+  type: object
+  properties:
+    broken_json:
+      type: string
+    target_schema:
+      type: object
+    hint:
+      type: string
+    task_name:
+      type: string
+    step_number:
+      type: integer
