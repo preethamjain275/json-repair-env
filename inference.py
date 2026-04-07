@@ -22,10 +22,12 @@ def log_start(task, env, model):
     print(f"[START] task={task} env={env} model={model}", flush=True)
 
 def log_step(step, action, reward, done, error):
-    print(f"[STEP] step={step} action={str(action)[:80]} reward={reward} done={done} error={error}", flush=True)
+    # Sanitize action to ensure it's on a single line and doesn't break parsing
+    clean_action = str(action).replace("\n", " ").replace("\r", "")[:80]
+    print(f"[STEP] step={step} action={clean_action} reward={reward} done={done} error={error}", flush=True)
 
-def log_end(success, steps, score, rewards):
-    print(f"[END] success={success} steps={steps} score={score} rewards={rewards}", flush=True)
+def log_end(task, success, steps, score, rewards):
+    print(f"[END] task={task} success={success} steps={steps} score={score} rewards={rewards}", flush=True)
 
 
 class EnvClient:
@@ -142,8 +144,8 @@ async def main():
         try:
             await env.close()
         except Exception as e:
-            print(f"[DEBUG] close error: {e}", flush=True)
-        log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
+            pass # Silent cleanup
+        log_end(task=TASK_NAME, success=success, steps=steps_taken, score=score, rewards=rewards)
 
 
 if __name__ == "__main__":
