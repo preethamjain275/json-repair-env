@@ -1,4 +1,14 @@
+---
+title: JSON Repair Environment
+emoji: 🛠️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 <img src="https://capsule-render.vercel.app/api?type=venom&height=220&text=JSON%20Repair%20Environment&fontSize=52&color=0:0d1117,100:1a1a2e&fontColor=58a6ff&animation=twinkling&stroke=58a6ff&strokeWidth=1&desc=OpenEnv%20%E2%80%A2%20Reinforcement%20Learning%20%E2%80%A2%20LLM%20Reliability&descSize=18&descAlignY=78&descAlign=50" width="100%"/>
+
 
 <div align="center">
 
