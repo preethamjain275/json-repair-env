@@ -12,7 +12,7 @@ pinned: false
 
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=800&size=22&duration=3000&pause=800&color=58A6FF&center=true&vCenter=true&multiline=false&repeat=true&width=680&lines=%E2%9C%A8+Training+AI+agents+to+fix+broken+JSON...;%F0%9F%94%A7+step()++reset()++state()+%E2%80%94+OpenEnv+Spec;%F0%9F%8F%86+Scaler+%C3%97+HuggingFace+OpenEnv+Hackathon+2026;%F0%9F%A7%A0+Real-world+RL+%E2%80%94+Not+games%2C+not+toys." alt="Typing SVG" />
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=800&size=22&duration=3000&pause=800&color=58A6FF&center=true&vCenter=true&multiline=false&repeat=true&width=680&lines=%E2%9C%A8+Training+AI+agents+to+fix+broken+JSON...;%F0%9F%94%A7+step()++reset()++state()+%E2%80%94+OpenEnv+Spec;%F0%9F%8F%86+Scaler+%C3%97+HuggingFace+OpenEnv+Hackathon+2025;%F0%9F%A7%A0+Real-world+RL+%E2%80%94+Not+games%2C+not+toys." alt="Typing SVG" />
 
 <br/><br/>
 
@@ -27,7 +27,7 @@ pinned: false
 
 [![Meta](https://img.shields.io/badge/Meta-Reviewed-0081FB?style=for-the-badge&logo=meta&logoColor=white&labelColor=0d1117)](https://meta.com)
 [![HuggingFace Engineers](https://img.shields.io/badge/%F0%9F%A4%97%20HuggingFace-Engineers%20Review-FF9D00?style=for-the-badge&labelColor=0d1117)](https://huggingface.co)
-[![Hackathon](https://img.shields.io/badge/%F0%9F%8F%86%20Hackathon-2026-gold?style=for-the-badge&labelColor=0d1117)](https://huggingface.co)
+[![Hackathon](https://img.shields.io/badge/%F0%9F%8F%86%20Hackathon-2025-gold?style=for-the-badge&labelColor=0d1117)](https://huggingface.co)
 
 </div>
 
@@ -321,7 +321,7 @@ json-repair-env/
 
 <br/>
 
-**Scaler × Meta — OpenEnv Hackathon 2026**
+**Scaler × HuggingFace — OpenEnv Hackathon 2025**
 
 *Reviewed by engineers from* **Meta** *&* **HuggingFace** 🤗
 
