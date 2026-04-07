@@ -135,7 +135,10 @@ async def main():
             if done:
                 break
 
-        score   = round(min(max(sum(rewards) / MAX_TOTAL_REWARD, 0.0), 1.0), 4)
+        # Clip score to (0.1, 0.9) instead of (0.0, 1.0)
+        # This is required by the validator to ensure non-binary scoring
+        raw_score = sum(rewards) / MAX_TOTAL_REWARD
+        score   = round(0.1 + (raw_score * 0.8), 4)
         success = score >= SUCCESS_SCORE_THRESHOLD
 
     except Exception as e:

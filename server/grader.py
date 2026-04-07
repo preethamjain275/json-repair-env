@@ -22,8 +22,8 @@ def grade_repair(repaired_json: str, task: dict) -> tuple:
     except json.JSONDecodeError as e:
         info["errors"].append(f"Invalid JSON syntax: {str(e)}")
         info["checks"]["valid_json"] = False
-        info["final_score"] = 0.0
-        return 0.0, info
+        info["final_score"] = 0.1
+        return 0.1, info
 
     # --- Check 2: Schema compliance (40%) ---
     try:
@@ -55,6 +55,9 @@ def grade_repair(repaired_json: str, task: dict) -> tuple:
     except Exception:
         info["checks"]["exact_match"] = False
 
-    score = round(min(max(score, 0.0), 1.0), 4)
-    info["final_score"] = score
-    return score, info
+    # CLIP TO (0, 1) RANGE: Hackathon requirements specify scores must be strictly between 0 and 1
+    # We use a base of 0.1 and a multiplier of 0.8 so that 0 becomes 0.1 and 1 becomes 0.9
+    final_score = round(0.1 + (score * 0.8), 4)
+
+    info["final_score"] = final_score
+    return final_score, info
