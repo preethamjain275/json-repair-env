@@ -23,6 +23,21 @@ tasks:
   - name: chaos_malformed_object
     difficulty: chaos
     description: Repair a chaotic object with mismatched brackets and damage
+  - name: mixed_quote_nightmare
+    difficulty: hard
+    description: Fix JSON with mixed single and double quotes
+  - name: escaped_character_confusion
+    difficulty: extreme
+    description: Repair JSON with malformed escape sequences
+  - name: truncated_stream_recovery
+    difficulty: chaos
+    description: Recover data from a truncated JSON object
+  - name: deep_recursive_reconstruction
+    difficulty: extreme
+    description: Repair deep hierarchy with missing braces
+  - name: data_type_normalization
+    difficulty: medium
+    description: Convert inconsistent formats to standard JSON types
 action_space:
   type: object
   properties:

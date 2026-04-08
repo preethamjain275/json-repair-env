@@ -321,7 +321,7 @@ json-repair-env/
 
 <br/>
 
-**Scaler × HuggingFace — OpenEnv Hackathon 2025**
+**Scaler × HuggingFace — OpenEnv Hackathon 2026**
 
 *Reviewed by engineers from* **Meta** *&* **HuggingFace** 🤗
 
